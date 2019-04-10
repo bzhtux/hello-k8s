@@ -37,6 +37,6 @@ except Exception as e:
     print("import hkf.views.except:", e)
     sys.exit(1)
 
-from hkf.utils import use_env_vars  # noqa
+# from hkf.utils import use_env_vars  # noqa
 
-use_env_vars()
+# use_env_vars()

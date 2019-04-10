@@ -34,7 +34,3 @@ try:
 except Exception as e:
     print("import hka.views.except:", e)
     sys.exit(1)
-
-from hka.utils import use_env_vars  # noqa
-
-use_env_vars()
