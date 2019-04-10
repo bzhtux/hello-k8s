@@ -1,5 +1,6 @@
 from hka import app
 import redis
+# import os
 
 # How to get config for redis ?
 r = redis.Redis(host=app.config['REDIS_HOST'],

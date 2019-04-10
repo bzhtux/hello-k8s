@@ -8,6 +8,6 @@ def home():
     if request.method == "POST":
         send_msg(request)
     all_msg = get_msgs()
-    if len(all_msg) == 0:
+    if (all_msg is not None and len(all_msg) == 0):
         all_msg = ["No messages yet :("]
     return render_template("index.html", messages=all_msg)
