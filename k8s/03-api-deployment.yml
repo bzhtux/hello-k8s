@@ -1,0 +1,31 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: api
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: hello-k8s
+        tier: api
+    spec:
+      containers:
+      - name: hello-k8s-api
+        image: bzhtux/hello-k8s-api:0.0.7
+        imagePullPolicy: Always
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        env:
+          - name: GET_HOSTS_FROM
+            value: env
+          - name: FLASK_ENV
+            value: dev
+          - name: REDIS_HOST
+            value: redis
+          - name: REDIS_PORT
+            value: '6379'
+        ports:
+        - containerPort: 5000
