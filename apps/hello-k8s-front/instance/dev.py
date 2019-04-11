@@ -5,17 +5,17 @@ import os
 ######################
 try:
     HKF_DEBUG = os.environ['HKF_DEBUG']
-finally:
+except KeyError:
     HKF_DEBUG = False
 
 try:
     HKF_HOST = os.environ['HKF_HOST']
-finally:
+except KeyError:
     HKF_HOST = "0.0.0.0"
 
 try:
     HKF_PORT = os.environ['HKF_PORT']
-finally:
+except KeyError:
     HKF_PORT = 8080
 MAX_MSG_GET = 10
 
@@ -25,10 +25,10 @@ MAX_MSG_GET = 10
 #######
 try:
     API_HOST = os.environ['API_HOST']
-finally:
+except KeyError:
     API_HOST = "0.0.0.0"
 
 try:
     API_PORT = int(os.environ['API_PORT'])
-finally:
+except KeyError:
     API_PORT = 5000

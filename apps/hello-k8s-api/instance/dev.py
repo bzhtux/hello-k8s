@@ -6,17 +6,17 @@ import os
 #################
 try:
     HKA_HOST = os.environ['HKA_HOST']
-finally:
+except KeyError:
     HKA_HOST = "0.0.0.0"
 
 try:
     HKA_PORT = os.environ['HKA_PORT']
-finally:
+except KeyError:
     HKA_PORT = 5000
 
 try:
     HKA_DEBUG = os.environ['HKA_DEBUG']
-finally:
+except KeyError:
     HKA_DEBUG = True
 
 MAX_MSG_GET = 10
@@ -26,10 +26,10 @@ MAX_MSG_GET = 10
 #########
 try:
     REDIS_HOST = os.environ['REDIS_HOST']
-finally:
+except KeyError:
     REDIS_HOST = "0.0.0.0"
 
 try:
     REDIS_PORT = int(os.environ['REDIS_PORT'])
-finally:
+except KeyError:
     REDIS_PORT = 6379
