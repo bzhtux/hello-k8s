@@ -4,11 +4,19 @@ import os
 #################
 ### HELLO-K8S-API  # noqa
 #################
-HKA_HOST = "0.0.0.0"
-HKA_PORT = 5000
-HKA_DEBUG = True
+if os.environ['HKA_HOST'] != "":
+    HKA_HOST = os.environ['HKA_HOST']
+else:
+    HKA_HOST = "0.0.0.0"
+if os.environ['HKA_PORT'] != "":
+    HKA_PORT = os.environ['HKA_PORT']
+else:
+    HKA_PORT = 5000
+if os.environ['HKA_DEBUG'] != "":
+    HKA_DEBUG = os.environ['HKA_DEBUG']
+else:
+    HKA_DEBUG = True
 MAX_MSG_GET = 10
-FLASK_DEBUG = True
 
 #########
 ### REDIS  # noqa
