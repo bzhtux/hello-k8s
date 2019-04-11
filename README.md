@@ -17,13 +17,13 @@ Hello-k8s is a 3 tiers application with a frontend to server webUI, and API to i
 +--------------------+
 | hello-k8s-frontend |
 +--------------------+
-		 |
-	  	 |
+	|
+	|
   +---------------+
   | hello-k8s-api |
   +---------------+
-		 |
-		 |
+	|
+	|
      +-------+
      | redis |
      +-------+
