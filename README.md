@@ -258,3 +258,106 @@ frontend   LoadBalancer   10.51.245.190   130.211.52.149   80:32521/TCP   37m
 ```
 
 Open your browser to `http://130.211.52.149` and leave a kind message ;-)
+
+## Limits and Requests
+
+Request is what a container is guarantee to get and limit ensure usage never go above its value. For example if your nodes provide a 3,4 G of memory you can't request for more otherwise container will never start.
+
+Let's try to set requests and limits that shouldn't let the application to work correctly:
+
+```shell
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: frontend
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: hello-k8s
+        tier: frontend
+    spec:
+      containers:
+      - name: hello-k8s-frontend
+        image: bzhtux/hello-k8s-frontend:0.0.12
+        imagePullPolicy: Always
+        resources:
+          requests:
+            cpu: 1m
+            memory: 10Mi
+          limits:
+            cpu: 10m
+            memory: 100Mi
+        env:
+          - name: GET_HOSTS_FROM
+            value: env
+          - name: FLASK_ENV
+            value: dev
+          - name: API_HOST
+            value: api
+          - name: API_PORT
+            value: '5000'
+          - name: HKF_PORT
+            value: '8080'
+        ports:
+        - containerPort: 8080
+```
+
+This mean that you request 1 mili CPU and 100M of memory and you are limited by 10 milmi CPU and 100M of memory. Apply this new configuration:
+
+```shell
+$ kubectl apply k8s/07-fake-requests-limits.yml
+```
+
+Now see how the application works under load testing. Run siege to perform a load testing:
+
+```shell
+$ siege -d1S -c255 -t10S http://130.211.52.149/
+[...]
+Lifting the server siege...
+Transactions:		          16 hits
+Availability:		       35.56 %
+Elapsed time:		        9.98 secs
+Data transferred:	        0.19 MB
+Response time:		        3.54 secs
+Transaction rate:	        1.60 trans/sec
+Throughput:		        0.02 MB/sec
+Concurrency:		        5.67
+Successful transactions:          16
+Failed transactions:	          29
+Longest transaction:	        9.80
+Shortest transaction:	        0.00
+```
+
+Availability is 35% so that mean the application need more resources than it can have currently. Let set better requests and limits for this application:
+
+```shell
+$ kubectl apply -f k8s/08-limits-requests.yml
+```
+
+Re run the load testing and observe the application behavior:
+
+```shell
+$ siege -d1S -c255 -t10S http://130.211.52.149/
+[...]
+Lifting the server siege...
+Transactions:		         552 hits
+Availability:		      100.00 %
+Elapsed time:		        9.93 secs
+Data transferred:	        5.57 MB
+Response time:		        3.25 secs
+Transaction rate:	       55.59 trans/sec
+Throughput:		        0.56 MB/sec
+Concurrency:		      180.90
+Successful transactions:         552
+Failed transactions:	           0
+Longest transaction:	        9.18
+Shortest transaction:	        0.24
+```
+
+Now availability is 100%, the application can use enough resources as required.
+
+## Persistent disks
+
+Frontend and API are stateless applications but REDIS is not and required a persistent disk to keep its data if redis container dies.
