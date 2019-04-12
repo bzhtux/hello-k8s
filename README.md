@@ -168,7 +168,7 @@ spec:
  * `type`:  LoadBalancer to use a GCP load balancer or other Iaas specific LBs
  * `selector.app` is the given name for the deployment app (here frontend as mentioned in the k8s/03-frontend-deployment.yml file)
  * `ports.port` is the exposed port
- * `port.targetPort` is the istening port of the deployment (pods)
+ * `port.targetPort` is the istening port of the deployment (HKF_PORT)
 
 Create all the services (redis, api and frontend): 
 
