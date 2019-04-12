@@ -7,11 +7,11 @@
                                            
 ```
 
-Hello-k8s is a simple Python app using REDIS learn how kubernetes works and to understand kubernetes key objects.
+Hello-k8s is a simple 3 tiers Python app to help learning how kubernetes works and to understand kubernetes key objects.
 
 # Python app
 
-Hello-k8s is a 3 tiers application with a frontend to server webUI, and API to interact with REDIS and REDIS to store messages.
+Hello-k8s is a 3 tiers application with a frontend an API for core actions and REDIS to store messages.
 
 ```shell
 +--------------------+
@@ -29,7 +29,7 @@ Hello-k8s is a 3 tiers application with a frontend to server webUI, and API to i
      +-------+
 ```
 
-The most important thing for this application to run is to catch environment variables for its configuration:
+To run, the application need to grab some environment variables for its configuration otherwise it use default values.
 
 ```python
 import os
@@ -68,7 +68,7 @@ except KeyError:
     API_PORT = 5000
 ```
 
-`API_HOST` and `API_PORT` will be defined in k8s manifest as environment variables for hello-k8s-frontend to use them to connect to API.
+`API_HOST` and `API_PORT` will be defined in k8s manifest as environment variables and hello-k8s-frontend will be able to use them to connect to API.
 
 # k8s
 
@@ -102,7 +102,7 @@ You can verify you are logged in with to new cluster:
 
 ```shell
 $ kubectl config current-context
-gke_cso-pcfs-emea-bzhtux_europe-west1-c_hello-k8s
+gke_xxx-yyy-zzz-bzhtux_europe-west1-c_hello-k8s
 ```
 
 Now create a namespace for this demo:
@@ -166,7 +166,7 @@ spec:
 
  * `kind`: This k8s object is a `Service`
  * `type`:  LoadBalancer to use a GCP load balancer or other Iaas specific LBs
- * `selector.app` is the given name for the deployment app (here redis as mentioned in the k8s/01-redis-deployment.yml file)
+ * `selector.app` is the given name for the deployment app (here frontend as mentioned in the k8s/03-frontend-deployment.yml file)
  * `ports.port` is the exposed port
  * `port.targetPort` is the istening port of the deployment (pods)
 
@@ -191,7 +191,7 @@ redis      ClusterIP      10.51.241.45    <none>           6379/TCP       49m
 
 ## Deployments
 
-Now services are deployed, you can create deployments for redis, api and frontend. But before just take a look at `k8s/05-frontend-deployment.yml` that create a deployment for the frontend application:
+When services are successfully deployed, you can create deployments for redis, api and frontend. But before just take a look at `k8s/05-frontend-deployment.yml` that create a deployment for the frontend application:
 
 ```shell
 apiVersion: extensions/v1beta1
@@ -228,8 +228,10 @@ spec:
  * `replicas` define the number of instances to run
  * `labels.app` define the application's name (used by selectors for example)
  * `env` all environment variables required by the application
+ * `API_HOST` and `API_PORT` will be used by application to connect to API
+ * `HKF_PORT` is used by the application and `containerPort` is use by kubernetes, but it must be the same value.
 
-You can create deployments using `k8s/*deployment.yml`:
+You can create deployments using `k8s/*deployment.yml` files:
 
 ```shell
 $ kubectl create -f k8s/01-redis-deployment.yml
@@ -252,7 +254,7 @@ Now to use hello-k8s get the LoadBalancer IP:
 ```shell
 $ kubectl get services frontend
 NAME       TYPE           CLUSTER-IP      EXTERNAL-IP      PORT(S)        AGE
-frontend   LoadBalancer   10.51.245.190   130.211.51.142   80:32521/TCP   37m
+frontend   LoadBalancer   10.51.245.190   130.211.52.149   80:32521/TCP   37m
 ```
 
-Open your browser to `http://130.211.51.142` and leave a kind message ;-)
+Open your browser to `http://130.211.52.149` and leave a kind message ;-)
