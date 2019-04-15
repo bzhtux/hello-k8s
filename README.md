@@ -7,7 +7,7 @@
                                            
 ```
 
-Hello-k8s is a simple 3 tiers Python app to help learning how kubernetes works and to understand kubernetes key objects.
+Hello-k8s is a simple 3 tiers Python app to help learning how kubernetes works and to understand kubernetes key objects. 
 
 # Python app
 
@@ -360,4 +360,89 @@ Now availability is 100%, the application can use enough resources as required.
 
 ## Persistent disks
 
-Frontend and API are stateless applications but REDIS is not and required a persistent disk to keep its data if redis container dies.
+Frontend and API are stateless applications but REDIS is not and require a persistent disk to keep its data if redis container dies. Add some message to hello-k8s and then delete the redis deployment and re create it:
+
+```shell
+$ kubectl delete -f k8s/01-redis-deployment.yml
+$ kubectl create -f k8s/01-redis-deployment.yml
+```
+
+Go back to the web interface, all the mesages have disappeared ! If you want to avoid such a behavior you have to use persistent disk for the redis pod.
+
+You can take a look at the `k8s/09-redis-with-pv.yml` :
+
+```shell
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis
+spec:
+  serviceName: redis
+  selector:
+    matchLabels:
+      app: redis
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: redis
+        tier: backend
+    spec:
+      containers:
+      - name: redis
+        image: redis
+        ports:
+        - containerPort: 6379
+          name: redis
+        volumeMounts:
+        - mountPath: "/data"
+          name: redis-pv-claim
+  volumeClaimTemplates:
+  - metadata:
+      name: redis-pv-claim
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 3Gi
+```
+
+* `kind` define as a statefulset instead of deployment
+* `volumeMounts` define mount point inside the container here redis store its data in `/data` directory
+* `volumeMounts.name` should be the same as `volumeClaimTemplates.metadata.name`
+* `accessModes` RW access from only one instance not a share volume.
+* `requests.storage` define the volume size, here 3G
+
+Now remove redis deployment and add redis statefulset:
+
+```shell
+$ kubectl delete -f k8s/01-redis-deployment.yml
+$ kubectl create -f k8s/09-redis-with-pv.yml
+$ kubectl get pods -w -l app=redis
+NAME      READY   STATUS              RESTARTS   AGE
+redis-0   0/1     ContainerCreating   0          10s
+redis-0   1/1   Running   0     11s
+```
+
+Now go back to the web interface, add some messages and delete the redis pod:
+
+```shell
+$ kubectl delete pod -l app=redis
+$ kubectl get pods -w -l app=redis
+redis-0   1/1   Terminating   0     11m
+redis-0   0/1   Terminating   0     11m
+redis-0   0/1   Terminating   0     11m
+redis-0   0/1   Terminating   0     11m
+redis-0   0/1   Pending   0     0s
+redis-0   0/1   Pending   0     0s
+redis-0   0/1   ContainerCreating   0     0s
+redis-0   1/1   Running   0     11s
+```
+
+Go back to the web interface, you can see your messages.
+
+From the event view you can see that when the pod is deleted the volume is detached and then attached to the new pod:
+
+```shell
+Normal   SuccessfulAttachVolume   Pod   AttachVolume.Attach succeeded for volume "pvc-dd3fe58c-5ded-11e9-8cd1-42010a84001d"
+````
