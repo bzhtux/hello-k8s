@@ -1,6 +1,6 @@
 from hkf import app
 from hkf.api import send_msg, get_msgs
-from flask import render_template, request
+from flask import render_template, request, jsonify
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -11,3 +11,7 @@ def home():
     if (all_msg is not None and len(all_msg) == 0):
         all_msg = ["No messages yet :("]
     return render_template("index.html", messages=all_msg)
+
+@app.route("/healthz", methods=["GET"])
+def healthz():
+    return jsonify({"status": "success"}), 200
