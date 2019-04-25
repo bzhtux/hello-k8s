@@ -10,21 +10,31 @@
                 <hr class="my-4">
                 <p>Leave us a kind message !</p>
             </div>
-            <form method="POST" action="/">
-                <div class="form-group">
-                    <label for="inputMsg">Leave us a kind message</label>
-                    <input type="text" class="form-control" id="inputMsg" aria-describedby="msgHelp" placeholder="Your message" name="msg" required>
-                    <small id="msgHelp" class="form-text text-muted">We love your messages</small>
+            {% with flash_message = get_flashed_messages() %}
+                {% if flash_message %}
+                {% for msg in flash_message %}
+                <div class="alert alert-danger" role="alert">
+                    {{ msg }}
                 </div>
-                <button type="submit" class="btn btn-secondary">Send message</button>
-            </form>            
-            
-            <div align="center">
-                <em><h3>Your messages</h3></em>
-                {% for msg in messages %}
-                    <p>{{ msg }}</p>
                 {% endfor %}
-            </div>
+                {% else %}
+                    <form method="POST" action="/">
+                        <div class="form-group">
+                            <label for="inputMsg">Leave us a kind message</label>
+                            <input type="text" class="form-control" id="inputMsg" aria-describedby="msgHelp" placeholder="Your message" name="msg" required>
+                            <small id="msgHelp" class="form-text text-muted">We love your messages</small>
+                        </div>
+                        <button type="submit" class="btn btn-secondary">Send message</button>
+                    </form>            
+                    
+                    <div align="center">
+                        <em><h3>Your messages</h3></em>
+                        {% for msg in messages %}
+                            <p>{{ msg }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
         </div>
 
         <!-- <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>

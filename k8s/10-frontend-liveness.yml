@@ -1,3 +1,4 @@
+---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
@@ -12,26 +13,37 @@ spec:
     spec:
       containers:
       - name: hello-k8s-frontend
-        image: bzhtux/hello-k8s-frontend:0.0.15
+        image: bzhtux/hello-k8s-frontend:0.0.16
         imagePullPolicy: Always
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 3
+          periodSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 3
+          periodSeconds: 15
         resources:
           requests:
-            cpu: 1m
-            memory: 10Mi
-          limits:
-            cpu: 10m
+            cpu: 100m
             memory: 100Mi
         env:
           - name: GET_HOSTS_FROM
             value: env
           - name: FLASK_ENV
-            value: dev
+            value: 'dev'
           - name: API_HOST
-            value: api
+            value: 'api'
           - name: API_PORT
             value: '5000'
           - name: HKF_PORT
             value: '8080'
+          - name: HKF_DEBUG
+            value: 'True'
         ports:
         - containerPort: 8080
       

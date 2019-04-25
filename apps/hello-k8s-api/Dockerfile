@@ -1,12 +1,4 @@
-FROM alpine:latest
-
-RUN apk update \
-    && apk add dumb-init python3
-
-RUN addgroup -S flask \
-    && adduser -S flask -G flask \
-    && mkdir -p /app \
-    && chown -R flask.flask /app
+FROM bzhtux/hello-k8s-base:latest
 
 COPY . /app
 
