@@ -20,6 +20,7 @@ except KeyError:
     HKA_DEBUG = True
 
 MAX_MSG_GET = 10
+DOCKER_VERSION = "0.0.9"
 
 #########
 ### REDIS  # noqa

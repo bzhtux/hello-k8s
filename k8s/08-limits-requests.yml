@@ -12,7 +12,7 @@ spec:
     spec:
       containers:
       - name: hello-k8s-frontend
-        image: bzhtux/hello-k8s-frontend:0.0.12
+        image: bzhtux/hello-k8s-frontend:0.0.15
         imagePullPolicy: Always
         resources:
           requests:
