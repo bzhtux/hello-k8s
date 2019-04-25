@@ -143,8 +143,11 @@ Each app will be exposed to others using a service. A service is a abstraction w
 
 You can have a look at the frontend service file:
 
+```shell
+$ cat k8s/06-frontend-service.yml
+```
+
 ```yaml
-$ cat 06-frontend-service.yml
 apiVersion: v1
 kind: Service
 metadata:
