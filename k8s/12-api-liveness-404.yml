@@ -15,6 +15,18 @@ spec:
       - name: hello-k8s-api
         image: bzhtux/hello-k8s-api:0.0.9
         imagePullPolicy: Always
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 3
+          periodSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 5000
+          initialDelaySeconds: 3
+          periodSeconds: 15
         resources:
           requests:
             cpu: 100m

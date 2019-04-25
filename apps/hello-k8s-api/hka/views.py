@@ -6,6 +6,8 @@ from flask import jsonify, request
 @app.route("/", methods=['GET'])
 def get_all():
     all_msg = redis_get_all()
+    if all_msg is None:
+        return jsonify({"status": "error", "messages": []})
     return jsonify({"status": "success", "messages": all_msg}), 200
 
 
@@ -16,3 +18,8 @@ def add_one():
         return jsonify({"status": "success", "message": new_msg.decode()}), 200
     else:
         return jsonify({"status": "error"}), 400
+
+
+@app.route("/healthz", methods=["GET"])
+def healthz():
+    return jsonify({"status": "success"}), 200

@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
       - name: hello-k8s-frontend
-        image: bzhtux/hello-k8s-frontend:0.0.12
+        image: bzhtux/hello-k8s-frontend:0.0.15
         imagePullPolicy: Always
         resources:
           requests:
@@ -24,6 +24,8 @@ spec:
             value: env
           - name: FLASK_ENV
             value: dev
+          - name: FLASK_DEBUG
+            value: True
           - name: API_HOST
             value: api
           - name: API_PORT
