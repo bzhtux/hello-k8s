@@ -143,7 +143,7 @@ Each app will be exposed to others using a service. A service is a abstraction w
 
 You can have a look at the frontend service file:
 
-```shell
+```yaml
 $ cat 06-frontend-service.yml
 apiVersion: v1
 kind: Service
@@ -193,7 +193,7 @@ redis      ClusterIP      10.51.241.45    <none>           6379/TCP       49m
 
 When services are successfully deployed, you can create deployments for redis, api and frontend. But before just take a look at `k8s/05-frontend-deployment.yml` that create a deployment for the frontend application:
 
-```shell
+```yaml
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
@@ -265,7 +265,7 @@ Request is what a container is guarantee to get and limit ensure usage never go 
 
 Let's try to set requests and limits that shouldn't let the application to work correctly:
 
-```shell
+```yaml
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
@@ -371,7 +371,7 @@ Go back to the web interface, all the mesages have disappeared ! If you want to 
 
 You can take a look at the `k8s/09-redis-with-pv.yml` :
 
-```shell
+```yaml
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -445,4 +445,71 @@ From the event view you can see that when the pod is deleted the volume is detac
 
 ```shell
 Normal   SuccessfulAttachVolume   Pod   AttachVolume.Attach succeeded for volume "pvc-dd3fe58c-5ded-11e9-8cd1-42010a84001d"
-````
+```
+
+## Liveness & readiness
+
+### Liveness
+
+At some point you may want high availability for your application and kubernetes can help with `liveness`. `LivenessProbe` with `httpGet` can perform a health check against your application. For example you may define a new route in your application `/healthz` and use this URI with `livenessProbe`:
+
+```yaml
+...
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 3
+          periodSeconds: 15
+...
+```
+
+ * `path` : define the URI to check
+ * `port` : define the listening port of your application
+ * `initialDelaySeconds` tells k8s to wait N sec before performing the first check
+ * `periodSeconds` tells k8s to wait N sec before next check
+
+ 
+### Readiness
+ 
+ For any reasons your application may load a huge amount of data at startup, `readinessProbe` can help user experience. Kubernetes will route traffic to the new pods only when readiness is successful:
+ 
+ ```yaml
+ ...
+         readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 3
+          periodSeconds: 15
+ ...
+ ```
+ 
+The key for readiness are the same as liveness.
+
+As an example if `livenessProbe.httpGet.path` check result in another status code than 200, after 3 checks the pod will be killed because unhealthy.
+
+To see a demo, run the following command:
+
+```shell
+$ kubectl apply -f k8s/12-api-liveness-404.yml
+```
+
+See now what is happening:
+
+```shell
+$ kubectl get events -w
+...
+0s    Warning   Unhealthy   Pod   Liveness probe failed: HTTP probe failed with statuscode: 404
+0s    Warning   Unhealthy   Pod   Liveness probe failed: HTTP probe failed with statuscode: 404
+0s    Warning   Unhealthy   Pod   Liveness probe failed: HTTP probe failed with statuscode: 404
+0s    Normal   Killing   Pod   Container hello-k8s-api failed liveness probe, will be restarted
+0s    Normal   Pulling   Pod   Pulling image "bzhtux/hello-k8s-api:0.0.9"
+...
+```
+
+To restore a valid path for api, run the following command:
+
+```shell
+$ kubectl apply -f k8s/11-api-liveness.yml
+```
