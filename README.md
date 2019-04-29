@@ -516,3 +516,89 @@ To restore a valid path for api, run the following command:
 ```shell
 $ kubectl apply -f k8s/11-api-liveness.yml
 ```
+
+## Horizontal Pod Autoscaler
+
+HPA (Horizontal Pod Autoscaler) automatically scales pods for you regarding metrics such as cpu, memory or custom metrics. `HorizontalPodAutoscaler` is an immutable object in kubernetes, so once it's created you can't change it and you have to delete this HPA to create a new one with values that fit the new requirement. HPA helps in providing high availability to end users. You can add HPA on frontend deployment (k8s/13-frontend-hpa.yml):
+
+```yaml
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: hpa-front
+  namespace: demo
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: frontend
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 50
+```
+
+That means, if CPU utilization percentage is over 50, HPA will start new replicas from 1 to 10.
+
+```shell
+$ kubectl create -f k8s/13-frontend-hpa.yml
+horizontalpodautoscaler.autoscaling/hpa-front created
+```
+
+You can try to simulate heavy load using `siege` and running the following command:
+
+```shell
+$ siege -d1S -c255 -t90S http://$(k get services frontend -o json |jq '.status.loadBalancer.ingress[0].ip' | sed 's/\"//g')/
+```
+
+And at the same time you can have a look at what is happening:
+
+```shell
+$ kubectl get events -w
+...
+0s    Normal   SuccessfulRescale   HorizontalPodAutoscaler   New size: 4; reason: cpu resource utilization (percentage of request) above target
+0s    Normal   ScalingReplicaSet   Deployment   Scaled up replica set frontend-55fc8b9479 to 4
+0s    Normal   SuccessfulCreate   ReplicaSet   Created pod: frontend-55fc8b9479-djlhq
+0s    Normal   Scheduled   Pod   Successfully assigned demo/frontend-55fc8b9479-djlhq to gke-hello-k8s-default-pool-ad6ad7e1-trm1
+0s    Normal   SuccessfulCreate   ReplicaSet   Created pod: frontend-55fc8b9479-qcbx5
+0s    Normal   SuccessfulCreate   ReplicaSet   Created pod: frontend-55fc8b9479-6n5nf
+...
+```
+
+```shell
+$ kubectl get pods -l tier=frontend
+frontend-55fc8b9479-djlhq   0/1   Pending   0     0s
+frontend-55fc8b9479-djlhq   0/1   Pending   0     0s
+frontend-55fc8b9479-qcbx5   0/1   Pending   0     0s
+frontend-55fc8b9479-6n5nf   0/1   Pending   0     0s
+frontend-55fc8b9479-djlhq   0/1   ContainerCreating   0     0s
+frontend-55fc8b9479-qcbx5   0/1   Pending   0     0s
+frontend-55fc8b9479-6n5nf   0/1   Pending   0     0s
+frontend-55fc8b9479-qcbx5   0/1   ContainerCreating   0     0s
+frontend-55fc8b9479-6n5nf   0/1   ContainerCreating   0     0s
+frontend-55fc8b9479-djlhq   0/1   Running   0     3s
+frontend-55fc8b9479-6n5nf   0/1   Running   0     3s
+frontend-55fc8b9479-qcbx5   0/1   Running   0     3s
+frontend-55fc8b9479-6n5nf   1/1   Running   0     7s
+frontend-55fc8b9479-qcbx5   1/1   Running   0     8s
+frontend-55fc8b9479-djlhq   1/1   Running   0     14s
+```
+
+```shell
+$ kubectl get hpa -w
+NAME        REFERENCE             TARGETS   MINPODS   MAXPODS   REPLICAS   AGE
+hpa-front   Deployment/frontend   8%/50%    1         10        1          100s
+hpa-front   Deployment/frontend   51%/50%   1     10    1     2m3s
+hpa-front   Deployment/frontend   267%/50%   1     10    1     3m3s
+```
+
+To scale down replicas to 1 run following command:
+
+```shell
+$ kubectl scale deployment frontend --replicas=1
+```
+
+If you want to delete HPA run the following command:
+
+```shell
+$ kubectl delete hpa hpa-front
+```
